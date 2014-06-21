@@ -21,20 +21,32 @@ insert(t, n) == CASE t = Empty  -> [value |-> n, left |-> Empty, right |-> Empty
 (***************************************************************************
 --algorithm GrowBinaryTree {
 
-\* Initially, the tree has a single root
-variable t = CHOOSE x \in NAT : [value |-> x, left |-> {}, right |-> {}];
+variable tree = Empty;
 
-\* To add a node
-process ( AddNode = 0 )
-    { l: with (x \in Nat)
-        {
-
+{ while(TRUE)
+    { with (x \in Nat)
+        { tree := insert(tree, x)
         }
     }
+}
 
 }
 
  ***************************************************************************)
+\* BEGIN TRANSLATION
+VARIABLE tree
+
+vars == << tree >>
+
+Init == (* Global variables *)
+        /\ tree = Empty
+
+Next == \E x \in Nat:
+          tree' = insert(tree, x)
+
+Spec == Init /\ [][Next]_vars
+
+\* END TRANSLATION
 =============================================================================
 \* Modification History
 \* Last modified Fri Jun 20 20:14:13 EDT 2014 by lorinhochstein
