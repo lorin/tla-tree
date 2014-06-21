@@ -6,8 +6,13 @@ CONSTANT Empty
 
 \* We model trees as records.
 
-RECURSIVE isTree(_)
 
+(***************************************************************************
+--algorithm GrowBinaryTree {
+variable tree = Empty;
+
+define {
+RECURSIVE isTree(_)
 isTree(t) == \/ t = Empty
              \/ ( /\ t.value \in Nat
                   /\ isTree(t.left)
@@ -17,11 +22,7 @@ RECURSIVE insert(_, _)
 insert(t, n) == CASE t = Empty  -> [value |-> n, left |-> Empty, right |-> Empty ] []
                      n < t.left -> [value |-> n, left |-> insert(t.left, n), right |-> t.right] []
                      OTHER      -> [value |-> n, left |-> t.left, right |-> insert(t.right, n)]
-
-(***************************************************************************
---algorithm GrowBinaryTree {
-
-variable tree = Empty;
+}
 
 { while(TRUE)
     { with (x \in Nat)
@@ -35,6 +36,19 @@ variable tree = Empty;
  ***************************************************************************)
 \* BEGIN TRANSLATION
 VARIABLE tree
+
+(* define statement *)
+RECURSIVE isTree(_)
+isTree(t) == \/ t = Empty
+             \/ ( /\ t.value \in Nat
+                  /\ isTree(t.left)
+                  /\ isTree(t.right))
+
+RECURSIVE insert(_, _)
+insert(t, n) == CASE t = Empty  -> [value |-> n, left |-> Empty, right |-> Empty ] []
+                     n < t.left -> [value |-> n, left |-> insert(t.left, n), right |-> t.right] []
+                     OTHER      -> [value |-> n, left |-> t.left, right |-> insert(t.right, n)]
+
 
 vars == << tree >>
 
