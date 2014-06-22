@@ -1,7 +1,7 @@
 (* This is an exercise in using TLA+ to model algorithms of binary search trees *)
 -------------------------------- MODULE tree --------------------------------
 
-EXTENDS Integers
+EXTENDS Integers, TLC
 CONSTANT Empty, N
 
 \* We model trees as records.
@@ -23,10 +23,6 @@ isTree(t) == \/ t = Empty
 
 TypeOK == isTree(tree)
 
-RECURSIVE insert(_, _)
-insert(t, n) == CASE t = Empty  -> [value |-> n, left |-> Empty, right |-> Empty ] []
-                     n < t.value -> [value |-> n, left |-> insert(t.left, n), right |-> t.right] []
-                     OTHER      -> [value |-> n, left |-> t.left, right |-> insert(t.right, n)]
 
 max(x, y) == IF (x>y) THEN x ELSE y
 
@@ -36,8 +32,20 @@ abs(x) == max(x, -x)
 RECURSIVE depth(_)
 depth(t) == IF (t = Empty) THEN 0 ELSE 1 + max(depth(t.left), depth(t.right))
 
-isBalanced(t) == \/ t = Empty
-                 \/ abs(depth(t.left) - depth(t.right)) \leq 1
+RECURSIVE isBalanced(_)
+isBalanced(t) == t = Empty \/ ( /\ isBalanced(t.left)
+                                /\ isBalanced(t.right)
+                                /\ abs(depth(t.left) - depth(t.right)) \leq 1 )
+
+InBalance == isBalanced(tree)
+
+
+RECURSIVE insert(_, _)
+insert(t, n) == CASE t = Empty -> [value |-> n, left |-> Empty, right |-> Empty ] []
+                     n < t.value -> [value |-> n, left |-> insert(t.left, n), right |-> t.right] []
+                     OTHER       -> [value |-> n, left |-> t.left, right |-> insert(t.right, n)]
+
+
 }
 
 { while(TRUE)
@@ -62,10 +70,6 @@ isTree(t) == \/ t = Empty
 
 TypeOK == isTree(tree)
 
-RECURSIVE insert(_, _)
-insert(t, n) == CASE t = Empty  -> [value |-> n, left |-> Empty, right |-> Empty ] []
-                     n < t.value -> [value |-> n, left |-> insert(t.left, n), right |-> t.right] []
-                     OTHER      -> [value |-> n, left |-> t.left, right |-> insert(t.right, n)]
 
 max(x, y) == IF (x>y) THEN x ELSE y
 
@@ -75,8 +79,18 @@ abs(x) == max(x, -x)
 RECURSIVE depth(_)
 depth(t) == IF (t = Empty) THEN 0 ELSE 1 + max(depth(t.left), depth(t.right))
 
-isBalanced(t) == \/ t = Empty
-                 \/ abs(depth(t.left) - depth(t.right)) \leq 1
+RECURSIVE isBalanced(_)
+isBalanced(t) == t = Empty \/ ( /\ isBalanced(t.left)
+                                /\ isBalanced(t.right)
+                                /\ abs(depth(t.left) - depth(t.right)) \leq 1 )
+
+InBalance == isBalanced(tree)
+
+
+RECURSIVE insert(_, _)
+insert(t, n) == CASE t = Empty -> [value |-> n, left |-> Empty, right |-> Empty ] []
+                     n < t.value -> [value |-> n, left |-> insert(t.left, n), right |-> t.right] []
+                     OTHER       -> [value |-> n, left |-> t.left, right |-> insert(t.right, n)]
 
 
 vars == << tree >>
@@ -93,5 +107,5 @@ Spec == /\ Init /\ [][Next]_vars
 \* END TRANSLATION
 =============================================================================
 \* Modification History
-\* Last modified Sat Jun 21 19:14:24 EDT 2014 by lorinhochstein
+\* Last modified Sat Jun 21 20:44:33 EDT 2014 by lorinhochstein
 \* Created Fri Jun 20 19:55:21 EDT 2014 by lorinhochstein
