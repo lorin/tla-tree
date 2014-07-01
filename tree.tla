@@ -8,43 +8,53 @@ CONSTANT N
 
 (***************************************************************************
 --algorithm GrowTree {
-    variables left = {}; right = {};
-    
+    variables nodes = {}, left = {}, right = {};
+
     define {
         NodesOf(R) == { r[1]: r \in R} \union { r[2] : r \in R }
-        Nodes(l, r) == NodesOf(l) \union NodesOf(r)
-        
+
         \* Define transitive closure, from 9.6.2 of Lamport's Hyperbook
-        
+
         R ** S == LET T == {rs \in R\X S : rs[1][2] = rs[2][1]}
-                  IN  {<<x[1][1], x[2][2]>> : x \in T} 
-                  
+                  IN  {<<x[1][1], x[2][2]>> : x \in T}
+
         TC(R) ==
             LET RECURSIVE STC(_)
                 STC(n) == IF n=1 THEN R
                                  ELSE STC(n-1) \union STC(n-1)**R
             IN IF R={} THEN {} ELSE STC(Cardinality(R))
-     
-        
+
+
         \* It's a tree if there's a root: a node that is reachable
-        \* from all other nodes 
-        
+        \* from all other nodes
+
         IsATree(l, r) ==
-            LET elts == Nodes(l,r)
-            IN  \E root \in elts : \A x \in elts \ {root} : <<x, root>> \in TC(l \union r)   
-       
+            IN  nodes = {} /\
+                \E root \in nodes : \A x \in nodes \ {root} : <<x, root>> \in TC(l \union r)
+
     }
-    
-    { while (TRUE) {
-        with(child \in 1..N \ Nodes(left, right);
-             parent \in Nodes(left, right);
-             side \in { left, right} ) {
-             
-              side := side \union { <<child, parent>> } 
-          
+
+    process (EmptyTree = 0) {
+        e: while(TRUE) {
+            await (nodes = {});
+            with (x \in 1..N) {
+                nodes := nodes \union {x}
+            }
         }
-    }}
-    
+    }
+
+    process (Insert = 1) {
+        i: while(TRUE) {
+            await (nodes =/= {});
+            with (x \in 1..N \ nodes;
+                  parent \in nodes) {
+                nodes := nodes \union {x};
+                either left := left \union { <<x, parent>> }
+                or     right := right \union { <<x, parent>> }
+            }
+        }
+    }
+
 }
  ***************************************************************************)
 \* BEGIN TRANSLATION
