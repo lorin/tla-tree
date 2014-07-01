@@ -29,8 +29,8 @@ CONSTANT N
         \* from all other nodes
 
         IsATree(l, r) ==
-            IN  nodes = {} /\
-                \E root \in nodes : \A x \in nodes \ {root} : <<x, root>> \in TC(l \union r)
+            nodes = {} \/
+            \E root \in nodes : \A x \in nodes \ {root} : <<x, root>> \in TC(l \union r)
 
     }
 
@@ -58,11 +58,10 @@ CONSTANT N
 }
  ***************************************************************************)
 \* BEGIN TRANSLATION
-VARIABLES left, right
+VARIABLES nodes, left, right
 
 (* define statement *)
 NodesOf(R) == { r[1]: r \in R} \union { r[2] : r \in R }
-Nodes(l, r) == NodesOf(l) \union NodesOf(r)
 
 
 
@@ -80,21 +79,34 @@ TC(R) ==
 
 
 IsATree(l, r) ==
-    LET elts == Nodes(l,r)
-    IN  \E root \in elts : \A x \in elts \ {root} : <<x, root>> \in TC(l \union r)
+    IN  nodes = {} /\
+        \E root \in nodes : \A x \in nodes \ {root} : <<x, root>> \in TC(l \union r)
 
 
-vars == << left, right >>
+vars == << nodes, left, right >>
+
+ProcSet == {0} \cup {1}
 
 Init == (* Global variables *)
+        /\ nodes = {}
         /\ left = {}
         /\ right = {}
 
-Next == /\ \E child \in 1..N \ Nodes(left, right):
-             \E parent \in Nodes(left, right):
-               \E side \in { left, right}:
-                 side' = (side \union { <<child, parent>> })
-        /\ UNCHANGED << left, right >>
+EmptyTree == /\ (nodes = {})
+             /\ \E x \in 1..N:
+                  nodes' = (nodes \union {x})
+             /\ UNCHANGED << left, right >>
+
+Insert == /\ (nodes =/= {})
+          /\ \E x \in 1..N \ nodes:
+               \E parent \in nodes:
+                 /\ nodes' = (nodes \union {x})
+                 /\ \/ /\ left' = (left \union { <<x, parent>> })
+                       /\ right' = right
+                    \/ /\ right' = (right \union { <<x, parent>> })
+                       /\ left' = left
+
+Next == EmptyTree \/ Insert
 
 Spec == Init /\ [][Next]_vars
 
