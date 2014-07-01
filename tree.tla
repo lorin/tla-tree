@@ -45,7 +45,7 @@ CONSTANT N
 
     process (Insert = 1) {
         i: while(TRUE) {
-            await (nodes =/= {});
+            await (nodes /= {});
             with (x \in 1..N \ nodes;
                   parent \in nodes) {
                 nodes := nodes \union {x};
@@ -79,8 +79,8 @@ TC(R) ==
 
 
 IsATree(l, r) ==
-    IN  nodes = {} /\
-        \E root \in nodes : \A x \in nodes \ {root} : <<x, root>> \in TC(l \union r)
+    nodes = {} \/
+    \E root \in nodes : \A x \in nodes \ {root} : <<x, root>> \in TC(l \union r)
 
 
 vars == << nodes, left, right >>
