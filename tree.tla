@@ -9,9 +9,9 @@ CONSTANT N
 
     define {
 
-        \* Define transitive closure, from 9.6.2 of Lamport's Hyperbook
+        (* Define transitive closure, from 9.6.2 of Lamport's Hyperbook.
+           We use Cardinality(R)+1 to catch cycles *)
 
-        \* Composition
         R ** S == LET T == {rs \in R \X S : rs[1][2] = rs[2][1]}
                   IN  {<<x[1][1], x[2][2]>> : x \in T}
 
@@ -19,16 +19,22 @@ CONSTANT N
             LET RECURSIVE STC(_)
                 STC(n) == IF n=1 THEN R
                                  ELSE STC(n-1) \union STC(n-1)**R
-            IN IF R={} THEN {} ELSE STC(Cardinality(R))
+            IN IF R={} THEN {} ELSE STC(Cardinality(R)+1)
 
 
-        \* It's a tree if there's a root: a node that is reachable
-        \* from all other nodes
+        (* It's a tree if there's a root: a node that is reachable
+           from all other nodes. Also, need to verify there are
+           no cycles. *)
 
-        IsATree ==
-            nodes = {} \/
+        Empty == nodes = {}
+
+        AllNodesReachable ==
             \E root \in nodes : \A x \in nodes \ {root} :
                 <<x, root>> \in TC(left \union right)
+
+        HasACycle == \E x \in nodes : <<x, x>> \in TC(left \union right)
+
+        IsATree == Empty \/ (AllNodesReachable /\ ~HasACycle)
     }
 
     process (EmptyTree = 0) {
