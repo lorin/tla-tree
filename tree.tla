@@ -1,11 +1,11 @@
 (* This is an exercise in using TLA+ to model binary search trees *)
 -------------------------------- MODULE tree --------------------------------
 EXTENDS Integers, FiniteSets, Sequences
-CONSTANT N
+CONSTANT N, NoValue
 
 (***************************************************************************
 --algorithm GrowTree {
-    variables nodes = {}, left = {}, right = {}, traversal = <<>>;
+    variables nodes = {}, left = {}, right = {}, root = NoValue, traversal = <<>>;
 
     define {
 
@@ -29,8 +29,8 @@ CONSTANT N
         Empty == nodes = {}
 
         AllNodesReachable ==
-            \E root \in nodes : \A x \in nodes \ {root} :
-                <<x, root>> \in TC(left \union right)
+            \E y \in nodes : \A x \in nodes \ {y} :
+                <<x, y>> \in TC(left \union right)
 
         HasACycle == \E x \in nodes : <<x, x>> \in TC(left \union right)
 
@@ -38,22 +38,21 @@ CONSTANT N
 
         (* In-order traversal *)
         LeftChild(node) ==
-            IF \E x : <<x, node>> \in left THEN CHOOSE x : <<x, node>> \in left
-            ELSE {}
+            IF \E x \in nodes: <<x, node>> \in left THEN CHOOSE x : <<x, node>> \in left
+            ELSE NoValue
 
         RightChild(node) ==
-            IF \E x : <<x, node>> \in right THEN CHOOSE x : <<x, node>> \in right
-            ELSE {}
+            IF \E x \in nodes: <<x, node>> \in right THEN CHOOSE x : <<x, node>> \in right
+            ELSE NoValue
 
         Traverse ==
             LET RECURSIVE TraverseRec(_)
                 TraverseRec(node) ==
-                    IF node={} THEN <<>>
+                    IF node=NoValue THEN <<>>
                     ELSE LET leftseq == TraverseRec(LeftChild(node))
                              rightseq == TraverseRec(RightChild(node))
                          IN Append(leftseq, node) \o rightseq
-            Root == CHOOSE root : \A x \in nodes \ {root} : <<x, root>> \in TC(left \union right)
-            IN IF nodes = {} THEN <<>> ELSE TraverseRec(Root)
+            IN IF nodes = {} THEN <<>> ELSE TraverseRec(root)
 
     }
 
@@ -61,6 +60,7 @@ CONSTANT N
         e: while(TRUE) {
             await (nodes = {});
             with (x \in 1..N) {
+                root := x;
                 nodes := nodes \union {x};
                 traversal := Traverse
             }
@@ -82,7 +82,7 @@ CONSTANT N
 }
  ***************************************************************************)
 \* BEGIN TRANSLATION
-VARIABLES nodes, left, right
+VARIABLES nodes, left, right, root, traversal
 
 (* define statement *)
 R ** S == LET T == {rs \in R \X S : rs[1][2] = rs[2][1]}
@@ -102,8 +102,8 @@ TC(R) ==
 Empty == nodes = {}
 
 AllNodesReachable ==
-    \E root \in nodes : \A x \in nodes \ {root} :
-        <<x, root>> \in TC(left \union right)
+    \E y \in nodes : \A x \in nodes \ {y} :
+        <<x, y>> \in TC(left \union right)
 
 HasACycle == \E x \in nodes : <<x, x>> \in TC(left \union right)
 
@@ -111,27 +111,24 @@ IsATree == Empty \/ (AllNodesReachable /\ ~HasACycle)
 
 
 LeftChild(node) ==
-    IF \E x : <<x, node>> \in left THEN CHOOSE x : <<x, node>> \in left
-    ELSE {}
+    IF \E x \in nodes: <<x, node>> \in left THEN CHOOSE x : <<x, node>> \in left
+    ELSE NoValue
 
 RightChild(node) ==
-    IF \E x : <<x, node>> \in right THEN CHOOSE x : <<x, node>> \in right
-    ELSE {}
-
-Root == IF nodes = {} THEN {}
-        ELSE CHOOSE root : \A x \in nodes \ {root} : <<x, root>> \in TC(left \union right)
+    IF \E x \in nodes: <<x, node>> \in right THEN CHOOSE x : <<x, node>> \in right
+    ELSE NoValue
 
 Traverse ==
     LET RECURSIVE TraverseRec(_)
         TraverseRec(node) ==
-            IF node={} THEN <<>>
+            IF node=NoValue THEN <<>>
             ELSE LET leftseq == TraverseRec(LeftChild(node))
                      rightseq == TraverseRec(RightChild(node))
                  IN Append(leftseq, node) \o rightseq
-    IN IF nodes = {} THEN <<>> ELSE TraverseRec(Root)
+    IN IF nodes = {} THEN <<>> ELSE TraverseRec(root)
 
 
-vars == << nodes, left, right >>
+vars == << nodes, left, right, root, traversal >>
 
 ProcSet == {0} \cup {1}
 
@@ -139,10 +136,14 @@ Init == (* Global variables *)
         /\ nodes = {}
         /\ left = {}
         /\ right = {}
+        /\ root = NoValue
+        /\ traversal = <<>>
 
 EmptyTree == /\ (nodes = {})
              /\ \E x \in 1..N:
-                  nodes' = (nodes \union {x})
+                  /\ root' = x
+                  /\ nodes' = (nodes \union {x})
+                  /\ traversal' = Traverse
              /\ UNCHANGED << left, right >>
 
 Insert == /\ (nodes /= {})
@@ -153,6 +154,8 @@ Insert == /\ (nodes /= {})
                        /\ right' = right
                     \/ /\ right' = (right \union { <<x, parent>> })
                        /\ left' = left
+                 /\ traversal' = Traverse
+          /\ root' = root
 
 Next == EmptyTree \/ Insert
 
@@ -162,5 +165,5 @@ Spec == Init /\ [][Next]_vars
 
 =============================================================================
 \* Modification History
-\* Last modified Mon Jun 30 21:17:32 EDT 2014 by lorinhochstein
+\* Last modified Fri Jul 04 18:32:03 EDT 2014 by lorinhochstein
 \* Created Fri Jun 20 19:55:21 EDT 2014 by lorinhochstein
