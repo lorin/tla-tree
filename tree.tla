@@ -5,7 +5,7 @@ CONSTANT N
 
 (***************************************************************************
 --algorithm GrowTree {
-    variables nodes = {}, left = {}, right = {};
+    variables nodes = {}, left = {}, right = {}, traversal = <<>>;
 
     define {
 
@@ -45,17 +45,15 @@ CONSTANT N
             IF \E x : <<x, node>> \in right THEN CHOOSE x : <<x, node>> \in right
             ELSE {}
 
-        RECURSIVE TraverseRec(_)
-        TraverseRec(node) ==
-            IF node={} THEN <<>>
-            ELSE LET leftseq == TraverseRec(LeftChild(node))
-                     rightseq == TraverseRec(RightChild(node)) IN
-                Append(leftseq, node) \o rightseq
-
-        Root == CHOOSE root : \A x \in nodes \ {root} : <<x, root>> \in TC(left \union right)
-
-        Traverse == IF nodes = {} THEN <<>>
-                    ELSE TraverseRec(Root)
+        Traverse ==
+            LET RECURSIVE TraverseRec(_)
+                TraverseRec(node) ==
+                    IF node={} THEN <<>>
+                    ELSE LET leftseq == TraverseRec(LeftChild(node))
+                             rightseq == TraverseRec(RightChild(node))
+                         IN Append(leftseq, node) \o rightseq
+            Root == CHOOSE root : \A x \in nodes \ {root} : <<x, root>> \in TC(left \union right)
+            IN IF nodes = {} THEN <<>> ELSE TraverseRec(Root)
 
     }
 
@@ -63,7 +61,8 @@ CONSTANT N
         e: while(TRUE) {
             await (nodes = {});
             with (x \in 1..N) {
-                nodes := nodes \union {x}
+                nodes := nodes \union {x};
+                traversal := Traverse
             }
         }
     }
@@ -75,7 +74,8 @@ CONSTANT N
                   parent \in nodes) {
                 nodes := nodes \union {x};
                 either left := left \union { <<x, parent>> }
-                or     right := right \union { <<x, parent>> }
+                or     right := right \union { <<x, parent>> };
+                traversal := Traverse
             }
         }
     }
@@ -118,9 +118,17 @@ RightChild(node) ==
     IF \E x : <<x, node>> \in right THEN CHOOSE x : <<x, node>> \in right
     ELSE {}
 
-Traverse(node) ==
-    IF n={} THEN <<>>
-    ELSE Append(Traverse(LeftChild(node), node)) \o Traverse(RightChild(node))
+Root == IF nodes = {} THEN {}
+        ELSE CHOOSE root : \A x \in nodes \ {root} : <<x, root>> \in TC(left \union right)
+
+Traverse ==
+    LET RECURSIVE TraverseRec(_)
+        TraverseRec(node) ==
+            IF node={} THEN <<>>
+            ELSE LET leftseq == TraverseRec(LeftChild(node))
+                     rightseq == TraverseRec(RightChild(node))
+                 IN Append(leftseq, node) \o rightseq
+    IN IF nodes = {} THEN <<>> ELSE TraverseRec(Root)
 
 
 vars == << nodes, left, right >>
