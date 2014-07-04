@@ -26,7 +26,7 @@ CONSTANT N, NoValue
            from all other nodes. Also, need to verify there are
            no cycles. *)
 
-        Empty == nodes = {}
+        TreeIsEmpty == nodes = {}
 
         AllNodesReachable ==
             \E y \in nodes : \A x \in nodes \ {y} :
@@ -34,31 +34,29 @@ CONSTANT N, NoValue
 
         HasACycle == \E x \in nodes : <<x, x>> \in TC(left \union right)
 
-        IsATree == Empty \/ (AllNodesReachable /\ ~HasACycle)
+        IsATree == TreeIsEmpty \/ (AllNodesReachable /\ ~HasACycle)
 
         (* In-order traversal *)
-        LeftChild(node) ==
-            IF \E x \in nodes: <<x, node>> \in left THEN CHOOSE x : <<x, node>> \in left
-            ELSE NoValue
-
-        RightChild(node) ==
-            IF \E x \in nodes: <<x, node>> \in right THEN CHOOSE x : <<x, node>> \in right
-            ELSE NoValue
-
         Traverse ==
-            LET RECURSIVE TraverseRec(_)
+            LET LeftChild(node) ==
+                    IF \E x \in nodes: <<x, node>> \in left THEN CHOOSE x : <<x, node>> \in left
+                    ELSE NoValue
+                RightChild(node) ==
+                    IF \E x \in nodes: <<x, node>> \in right THEN CHOOSE x : <<x, node>> \in right
+                    ELSE NoValue
+                RECURSIVE TraverseRec(_)
                 TraverseRec(node) ==
                     IF node=NoValue THEN <<>>
                     ELSE LET leftseq == TraverseRec(LeftChild(node))
                              rightseq == TraverseRec(RightChild(node))
                          IN Append(leftseq, node) \o rightseq
-            IN IF nodes = {} THEN <<>> ELSE TraverseRec(root)
+            IN IF TreeIsEmpty THEN <<>> ELSE TraverseRec(root)
 
     }
 
     process (EmptyTree = 0) {
         e: while(TRUE) {
-            await (nodes = {});
+            await (TreeIsEmpty);
             with (x \in 1..N) {
                 root := x;
                 nodes := nodes \union {x};
