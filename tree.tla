@@ -1,6 +1,6 @@
 (* This is an exercise in using TLA+ to model binary search trees *)
 -------------------------------- MODULE tree --------------------------------
-EXTENDS Integers, FiniteSets
+EXTENDS Integers, FiniteSets, Sequences
 CONSTANT N
 
 (***************************************************************************
@@ -35,6 +35,28 @@ CONSTANT N
         HasACycle == \E x \in nodes : <<x, x>> \in TC(left \union right)
 
         IsATree == Empty \/ (AllNodesReachable /\ ~HasACycle)
+
+        (* In-order traversal *)
+        LeftChild(node) ==
+            IF \E x : <<x, node>> \in left THEN CHOOSE x : <<x, node>> \in left
+            ELSE {}
+
+        RightChild(node) ==
+            IF \E x : <<x, node>> \in right THEN CHOOSE x : <<x, node>> \in right
+            ELSE {}
+
+        RECURSIVE TraverseRec(_)
+        TraverseRec(node) ==
+            IF node={} THEN <<>>
+            ELSE LET leftseq == TraverseRec(LeftChild(node))
+                     rightseq == TraverseRec(RightChild(node)) IN
+                Append(leftseq, node) \o rightseq
+
+        Root == CHOOSE root : \A x \in nodes \ {root} : <<x, root>> \in TC(left \union right)
+
+        Traverse == IF nodes = {} THEN <<>>
+                    ELSE TraverseRec(Root)
+
     }
 
     process (EmptyTree = 0) {
@@ -70,16 +92,35 @@ TC(R) ==
     LET RECURSIVE STC(_)
         STC(n) == IF n=1 THEN R
                          ELSE STC(n-1) \union STC(n-1)**R
-    IN IF R={} THEN {} ELSE STC(Cardinality(R))
+    IN IF R={} THEN {} ELSE STC(Cardinality(R)+1)
 
 
 
 
 
-IsATree ==
-    nodes = {} \/
+
+Empty == nodes = {}
+
+AllNodesReachable ==
     \E root \in nodes : \A x \in nodes \ {root} :
         <<x, root>> \in TC(left \union right)
+
+HasACycle == \E x \in nodes : <<x, x>> \in TC(left \union right)
+
+IsATree == Empty \/ (AllNodesReachable /\ ~HasACycle)
+
+
+LeftChild(node) ==
+    IF \E x : <<x, node>> \in left THEN CHOOSE x : <<x, node>> \in left
+    ELSE {}
+
+RightChild(node) ==
+    IF \E x : <<x, node>> \in right THEN CHOOSE x : <<x, node>> \in right
+    ELSE {}
+
+Traverse(node) ==
+    IF n={} THEN <<>>
+    ELSE Append(Traverse(LeftChild(node), node)) \o Traverse(RightChild(node))
 
 
 vars == << nodes, left, right >>
