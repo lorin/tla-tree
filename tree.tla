@@ -71,29 +71,21 @@ CONSTANT N, NoValue
         }
     }
 
-    process (InsertLeft = 1) {
+    process (Insert=1) {
         il: while(TRUE) {
             await (~TreeIsEmpty);
             with (x \in 1..N \ nodes;
-                  parent = CHOOSE parent \in nodes :
-                    \lnot \E y \in nodes : <<y, parent>> \in left) {
+                  parent = CHOOSE parent \in nodes:
+                    (x < parent /\ \lnot \E y \in nodes : <<y, parent>> \in left) \/
+                    (x > parent /\ \lnot \E y \in nodes : <<y, parent>> \in right) ) {
+                nodes := nodes \union {x};
+                if (x < parent)
+                    left := left \union <<x,parent>>
+                else
+                    right := right \union <<x,parent>>
 
-                    nodes := nodes \union {x};
-                    left := left \union { <<x, parent>> }
             }
-        }
-    }
 
-    process (InsertRight = 2) {
-        ir: while(TRUE) {
-            await (~TreeIsEmpty);
-            with (x \in 1..N \ nodes;
-                  parent = CHOOSE parent \in nodes :
-                    \lnot \E y \in nodes : <<y, parent>> \in right) {
-
-                    nodes := nodes \union {x};
-                    right := right \union { <<x, parent>> }
-            }
         }
     }
 }
