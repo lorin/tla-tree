@@ -24,7 +24,8 @@ CONSTANT N, NoValue
 
         (* It's a tree if there's a root: a node that is reachable
            from all other nodes. Also, need to verify there are
-           no cycles. *)
+           no cycles, and that there is at most one left-child
+           and right-child. *)
 
         TreeIsEmpty == nodes = {}
 
@@ -34,21 +35,26 @@ CONSTANT N, NoValue
 
         HasACycle == \E x \in nodes : <<x, x>> \in TC(left \union right)
 
-        IsATree == TreeIsEmpty \/ (AllNodesReachable /\ ~HasACycle)
+        OneToOne(rel) == \A x,y,z \in nodes :
+            (<<x,z>> \in rel /\ <<y,z>> \in rel) => x=y
+
+        IsATree == TreeIsEmpty \/ (/\ AllNodesReachable
+                                   /\ ~HasACycle
+                                   /\ OneToOne(left)
+                                   /\ OneToOne(right))
+
 
         (* In-order traversal *)
         Traverse ==
-            LET LeftChild(node) ==
-                    IF \E x \in nodes: <<x, node>> \in left THEN CHOOSE x : <<x, node>> \in left
-                    ELSE NoValue
-                RightChild(node) ==
-                    IF \E x \in nodes: <<x, node>> \in right THEN CHOOSE x : <<x, node>> \in right
+            LET Child(parent, side) ==
+                    IF \E x \in nodes : <<x, parent>> \in side THEN
+                         CHOOSE x \in nodes : <<x, parent>> \in side
                     ELSE NoValue
                 RECURSIVE TraverseRec(_)
                 TraverseRec(node) ==
                     IF node=NoValue THEN <<>>
-                    ELSE LET leftseq == TraverseRec(LeftChild(node))
-                             rightseq == TraverseRec(RightChild(node))
+                    ELSE LET leftseq == TraverseRec(Child(node, left))
+                             rightseq == TraverseRec(Child(node, right))
                          IN Append(leftseq, node) \o rightseq
             IN IF TreeIsEmpty THEN <<>> ELSE TraverseRec(root)
 
