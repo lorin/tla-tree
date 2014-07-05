@@ -47,18 +47,18 @@ CONSTANT N, NoValue
         \* Invert a binary relation
         Inv(rel) == { <<r[2], r[1]>> : r \in rel }
 
-        LeftDesc(lrel, rrel, node) ==
+        LeftDesc(ns, lrel, rrel, node) ==
             LET rel == (lrel \union rrel) \ {r \in rrel : r[2]=node}
-            IN { x \in nodes : <<node, x>> \in TC(Inv(rel)) }
+            IN { x \in ns : <<node, x>> \in TC(Inv(rel)) }
 
-        RightDesc(lrel, rrel, node) ==
+        RightDesc(ns, lrel, rrel, node) ==
             LET rel == (lrel \union rrel) \ {r \in lrel : r[2]=node}
-            IN { x \in nodes : <<node, x>> \in TC(Inv(rel)) }
+            IN { x \in ns : <<node, x>> \in TC(Inv(rel)) }
 
         HasBstProperty(nodeset,lrel,rrel) ==
             \A n \in nodeset:
-                /\ \A x \in LeftDesc(lrel, rrel, n) : n>x
-                /\ \A x \in RightDesc(lrel, rrel, n) : n<x
+                /\ \A x \in LeftDesc(nodeset, lrel, rrel, n) : n>x
+                /\ \A x \in RightDesc(nodeset, lrel, rrel, n) : n<x
 
         IsATree == TreeIsEmpty \/ (/\ AllNodesReachable
                                    /\ ~HasACycle
@@ -162,18 +162,18 @@ OneToOne(rel) == \A x,y,z \in nodes :
 
 Inv(rel) == { <<r[2], r[1]>> : r \in rel }
 
-LeftDesc(lrel, rrel, node) ==
+LeftDesc(ns, lrel, rrel, node) ==
     LET rel == (lrel \union rrel) \ {r \in rrel : r[2]=node}
-    IN { x \in nodes : <<node, x>> \in TC(Inv(rel)) }
+    IN { x \in ns : <<node, x>> \in TC(Inv(rel)) }
 
-RightDesc(lrel, rrel, node) ==
+RightDesc(ns, lrel, rrel, node) ==
     LET rel == (lrel \union rrel) \ {r \in lrel : r[2]=node}
-    IN { x \in nodes : <<node, x>> \in TC(Inv(rel)) }
+    IN { x \in ns : <<node, x>> \in TC(Inv(rel)) }
 
 HasBstProperty(nodeset,lrel,rrel) ==
     \A n \in nodeset:
-        /\ \A x \in LeftDesc(lrel, rrel, n) : n>x
-        /\ \A x \in RightDesc(lrel, rrel, n) : n<x
+        /\ \A x \in LeftDesc(nodeset, lrel, rrel, n) : n>x
+        /\ \A x \in RightDesc(nodeset, lrel, rrel, n) : n<x
 
 IsATree == TreeIsEmpty \/ (/\ AllNodesReachable
                            /\ ~HasACycle
