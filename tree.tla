@@ -9,6 +9,11 @@ CONSTANT N, NoValue
 
     define {
 
+        TypeOK == /\ \A x \in nodes : x \in Nat
+                  /\ \A x \in left : x \in nodes \X nodes
+                  /\ \A x \in right : x \in nodes \X nodes
+                  /\ (root = NoValue \/ root \in Nat)
+
         (* Define transitive closure, from 9.6.2 of Lamport's Hyperbook.
            We use Cardinality(R)+1 to catch cycles *)
 
@@ -80,9 +85,9 @@ CONSTANT N, NoValue
                     (x > parent /\ \lnot \E y \in nodes : <<y, parent>> \in right) ) {
                 nodes := nodes \union {x};
                 if (x < parent)
-                    left := left \union <<x,parent>>
+                    left := left \union {<<x,parent>>}
                 else
-                    right := right \union <<x,parent>>
+                    right := right \union {<<x,parent>>}
 
             }
 
@@ -94,6 +99,14 @@ CONSTANT N, NoValue
 VARIABLES nodes, left, right, root
 
 (* define statement *)
+TypeOK == /\ \A x \in nodes : x \in Nat
+          /\ \A x \in left : x \in nodes \X nodes
+          /\ \A x \in right : x \in nodes \X nodes
+          /\ (root = NoValue \/ root \in Nat)
+
+
+
+
 R ** S == LET T == {rs \in R \X S : rs[1][2] = rs[2][1]}
           IN  {<<x[1][1], x[2][2]>> : x \in T}
 
@@ -166,9 +179,9 @@ Insert == /\ (~TreeIsEmpty)
                              (x > parent /\ \lnot \E y \in nodes : <<y, parent>> \in right) IN
                  /\ nodes' = (nodes \union {x})
                  /\ IF x < parent
-                       THEN /\ left' = (left \union <<x,parent>>)
+                       THEN /\ left' = (left \union {<<x,parent>>})
                             /\ right' = right
-                       ELSE /\ right' = (right \union <<x,parent>>)
+                       ELSE /\ right' = (right \union {<<x,parent>>})
                             /\ left' = left
           /\ root' = root
 
