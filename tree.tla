@@ -72,15 +72,16 @@ CONSTANT N, NoValue
         }
     }
 
-    process (Insert = 1) {
-        i: while(TRUE) {
+    process (InsertLeft = 1) {
+        il: while(TRUE) {
             await (nodes /= {});
             with (x \in 1..N \ nodes;
                   parent \in nodes) {
-                nodes := nodes \union {x};
-                either left := left \union { <<x, parent>> }
-                or     right := right \union { <<x, parent>> };
-                traversal := Traverse
+                if(\lnot \E y \in nodes : <<y, parent>> \in left){
+                    nodes := nodes \union {x};
+                    left := left \union { <<x, parent>> };
+                    traversal := Traverse
+                }
             }
         }
     }
