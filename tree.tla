@@ -101,10 +101,14 @@ CONSTANT N, NoValue
                     LET Childless(pt, side) == \lnot \E y \in nodes : <<y,pt>> \in side
                     IN (/\ x < parent
                         /\ Childless(parent, left)
-                        /\ HasBstProperty(nodes \union {x}, left \union {<<x,parent>>}, right)) \/
-                       (/\ x > parent
+                        /\ HasBstProperty(nodes \union {x},
+                                          left \union {<<x,parent>>},
+                                          right))
+                    \/ (/\ x > parent
                         /\ Childless(parent, right)
-                        /\ HasBstProperty(nodes \union {x}, left, right \union {<<x,parent>>}))) {
+                        /\ HasBstProperty(nodes \union {x},
+                                          left,
+                                          right \union {<<x,parent>>}))) {
                 nodes := nodes \union {x};
                 if (x < parent)
                     left := left \union {<<x,parent>>}
@@ -216,10 +220,14 @@ Insert == /\ (~TreeIsEmpty)
                              LET Childless(pt, side) == \lnot \E y \in nodes : <<y,pt>> \in side
                              IN (/\ x < parent
                                  /\ Childless(parent, left)
-                                 /\ HasBstProperty(nodes \union {x}, left \union {<<x,parent>>}, right)) \/
-                                (/\ x > parent
+                                 /\ HasBstProperty(nodes \union {x},
+                                                   left \union {<<x,parent>>},
+                                                   right))
+                             \/ (/\ x > parent
                                  /\ Childless(parent, right)
-                                 /\ HasBstProperty(nodes \union {x}, left, right \union {<<x,parent>>})) IN
+                                 /\ HasBstProperty(nodes \union {x},
+                                                   left,
+                                                   right \union {<<x,parent>>})) IN
                  /\ nodes' = (nodes \union {x})
                  /\ IF x < parent
                        THEN /\ left' = (left \union {<<x,parent>>})
