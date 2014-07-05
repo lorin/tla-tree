@@ -97,9 +97,14 @@ CONSTANT N, NoValue
         il: while(TRUE) {
             await (~TreeIsEmpty);
             with (x \in 1..N \ nodes;
-                  parent = CHOOSE parent \in nodes:
-                    (x < parent /\ \lnot \E y \in nodes : <<y, parent>> \in left) \/
-                    (x > parent /\ \lnot \E y \in nodes : <<y, parent>> \in right) ) {
+                  parent = CHOOSE parent \in nodes :
+                    LET Childless(pt, side) == \lnot \E y \in nodes : <<y,pt>> \in side
+                    IN (/\ x < parent
+                        /\ Childless(parent, left)
+                        /\ HasBstProperty(nodes \union {x}, left \union {<<x,parent>>}, right)) \/
+                       (/\ x > parent
+                        /\ Childless(parent, right)
+                        /\ HasBstProperty(nodes \union {x}, left, right \union {<<x,parent>>}))) {
                 nodes := nodes \union {x};
                 if (x < parent)
                     left := left \union {<<x,parent>>}
@@ -107,7 +112,6 @@ CONSTANT N, NoValue
                     right := right \union {<<x,parent>>}
 
             }
-
         }
     }
 }
@@ -208,9 +212,14 @@ EmptyTree == /\ (TreeIsEmpty)
 
 Insert == /\ (~TreeIsEmpty)
           /\ \E x \in 1..N \ nodes:
-               LET parent ==        CHOOSE parent \in nodes:
-                             (x < parent /\ \lnot \E y \in nodes : <<y, parent>> \in left) \/
-                             (x > parent /\ \lnot \E y \in nodes : <<y, parent>> \in right) IN
+               LET parent ==        CHOOSE parent \in nodes :
+                             LET Childless(pt, side) == \lnot \E y \in nodes : <<y,pt>> \in side
+                             IN (/\ x < parent
+                                 /\ Childless(parent, left)
+                                 /\ HasBstProperty(nodes \union {x}, left \union {<<x,parent>>}, right)) \/
+                                (/\ x > parent
+                                 /\ Childless(parent, right)
+                                 /\ HasBstProperty(nodes \union {x}, left, right \union {<<x,parent>>})) IN
                  /\ nodes' = (nodes \union {x})
                  /\ IF x < parent
                        THEN /\ left' = (left \union {<<x,parent>>})
@@ -227,5 +236,5 @@ Spec == Init /\ [][Next]_vars
 
 =============================================================================
 \* Modification History
-\* Last modified Fri Jul 04 22:24:07 EDT 2014 by lorinhochstein
+\* Last modified Sat Jul 05 09:48:07 EDT 2014 by lorinhochstein
 \* Created Fri Jun 20 19:55:21 EDT 2014 by lorinhochstein
