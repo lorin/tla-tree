@@ -5,7 +5,7 @@ CONSTANT N, NoValue
 
 (***************************************************************************
 --algorithm GrowTree {
-    variables nodes = {}, left = {}, right = {}, root = NoValue, traversal = <<>>;
+    variables nodes = {}, left = {}, right = {}, root = NoValue;
 
     define {
 
@@ -66,22 +66,20 @@ CONSTANT N, NoValue
             await (TreeIsEmpty);
             with (x \in 1..N) {
                 root := x;
-                nodes := nodes \union {x};
-                traversal := Traverse
+                nodes := nodes \union {x}
             }
         }
     }
 
     process (InsertLeft = 1) {
         il: while(TRUE) {
-            await (nodes /= {});
+            await (~TreeIsEmpty);
             with (x \in 1..N \ nodes;
                   parent = CHOOSE parent \in nodes :
                     \lnot \E y \in nodes : <<y, parent>> \in left) {
 
                     nodes := nodes \union {x};
-                    left := left \union { <<x, parent>> };
-                    traversal := Traverse
+                    left := left \union { <<x, parent>> }
             }
         }
     }
