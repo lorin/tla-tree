@@ -58,7 +58,7 @@ CONSTANT N, NoValue
                          IN Append(leftseq, node) \o rightseq
             IN IF TreeIsEmpty THEN <<>> ELSE TraverseRec(root)
 
-        IsSorted(seq) == \A i,j \in 1..Cardinality(nodes) : (i < j) => seq[i] < seq[j]
+        IsSorted(seq) == \A i,j \in 1..Len(seq) : (i < j) => seq[i] < seq[j]
     }
 
     process (EmptyTree = 0) {
@@ -140,12 +140,12 @@ Traverse ==
                  IN Append(leftseq, node) \o rightseq
     IN IF TreeIsEmpty THEN <<>> ELSE TraverseRec(root)
 
-IsSorted(seq) == \A i,j \in 1..Cardinality(nodes) : (i < j) => seq[i] < seq[j]
+IsSorted(seq) == \A i,j \in 1..Len(seq) : (i < j) => seq[i] < seq[j]
 
 
 vars == << nodes, left, right, root >>
 
-ProcSet == {0} \cup {1} \cup {2}
+ProcSet == {0} \cup {1}
 
 Init == (* Global variables *)
         /\ nodes = {}
@@ -159,23 +159,20 @@ EmptyTree == /\ (TreeIsEmpty)
                   /\ nodes' = (nodes \union {x})
              /\ UNCHANGED << left, right >>
 
-InsertLeft == /\ (~TreeIsEmpty)
-              /\ \E x \in 1..N \ nodes:
-                   LET parent ==        CHOOSE parent \in nodes :
-                                 \lnot \E y \in nodes : <<y, parent>> \in left IN
-                     /\ nodes' = (nodes \union {x})
-                     /\ left' = (left \union { <<x, parent>> })
-              /\ UNCHANGED << right, root >>
+Insert == /\ (~TreeIsEmpty)
+          /\ \E x \in 1..N \ nodes:
+               LET parent ==        CHOOSE parent \in nodes:
+                             (x < parent /\ \lnot \E y \in nodes : <<y, parent>> \in left) \/
+                             (x > parent /\ \lnot \E y \in nodes : <<y, parent>> \in right) IN
+                 /\ nodes' = (nodes \union {x})
+                 /\ IF x < parent
+                       THEN /\ left' = (left \union <<x,parent>>)
+                            /\ right' = right
+                       ELSE /\ right' = (right \union <<x,parent>>)
+                            /\ left' = left
+          /\ root' = root
 
-InsertRight == /\ (~TreeIsEmpty)
-               /\ \E x \in 1..N \ nodes:
-                    LET parent ==        CHOOSE parent \in nodes :
-                                  \lnot \E y \in nodes : <<y, parent>> \in right IN
-                      /\ nodes' = (nodes \union {x})
-                      /\ right' = (right \union { <<x, parent>> })
-               /\ UNCHANGED << left, root >>
-
-Next == EmptyTree \/ InsertLeft \/ InsertRight
+Next == EmptyTree \/ Insert
 
 Spec == Init /\ [][Next]_vars
 
@@ -183,5 +180,5 @@ Spec == Init /\ [][Next]_vars
 
 =============================================================================
 \* Modification History
-\* Last modified Fri Jul 04 18:32:03 EDT 2014 by lorinhochstein
+\* Last modified Fri Jul 04 22:24:07 EDT 2014 by lorinhochstein
 \* Created Fri Jun 20 19:55:21 EDT 2014 by lorinhochstein
