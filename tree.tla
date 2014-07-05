@@ -99,7 +99,7 @@ CONSTANT N, NoValue
 }
  ***************************************************************************)
 \* BEGIN TRANSLATION
-VARIABLES nodes, left, right, root, traversal
+VARIABLES nodes, left, right, root
 
 (* define statement *)
 R ** S == LET T == {rs \in R \X S : rs[1][2] = rs[2][1]}
@@ -116,7 +116,8 @@ TC(R) ==
 
 
 
-Empty == nodes = {}
+
+TreeIsEmpty == nodes = {}
 
 AllNodesReachable ==
     \E y \in nodes : \A x \in nodes \ {y} :
@@ -124,57 +125,65 @@ AllNodesReachable ==
 
 HasACycle == \E x \in nodes : <<x, x>> \in TC(left \union right)
 
-IsATree == Empty \/ (AllNodesReachable /\ ~HasACycle)
+OneToOne(rel) == \A x,y,z \in nodes :
+    (<<x,z>> \in rel /\ <<y,z>> \in rel) => x=y
+
+IsATree == TreeIsEmpty \/ (/\ AllNodesReachable
+                           /\ ~HasACycle
+                           /\ OneToOne(left)
+                           /\ OneToOne(right))
 
 
-LeftChild(node) ==
-    IF \E x \in nodes: <<x, node>> \in left THEN CHOOSE x : <<x, node>> \in left
-    ELSE NoValue
-
-RightChild(node) ==
-    IF \E x \in nodes: <<x, node>> \in right THEN CHOOSE x : <<x, node>> \in right
-    ELSE NoValue
 
 Traverse ==
-    LET RECURSIVE TraverseRec(_)
+    LET Child(parent, side) ==
+            IF \E x \in nodes : <<x, parent>> \in side THEN
+                 CHOOSE x \in nodes : <<x, parent>> \in side
+            ELSE NoValue
+        RECURSIVE TraverseRec(_)
         TraverseRec(node) ==
             IF node=NoValue THEN <<>>
-            ELSE LET leftseq == TraverseRec(LeftChild(node))
-                     rightseq == TraverseRec(RightChild(node))
+            ELSE LET leftseq == TraverseRec(Child(node, left))
+                     rightseq == TraverseRec(Child(node, right))
                  IN Append(leftseq, node) \o rightseq
-    IN IF nodes = {} THEN <<>> ELSE TraverseRec(root)
+    IN IF TreeIsEmpty THEN <<>> ELSE TraverseRec(root)
+
+IsSorted(seq) == \A i,j \in 1..Cardinality(nodes) : (i < j) => seq[i] < seq[j]
 
 
-vars == << nodes, left, right, root, traversal >>
+vars == << nodes, left, right, root >>
 
-ProcSet == {0} \cup {1}
+ProcSet == {0} \cup {1} \cup {2}
 
 Init == (* Global variables *)
         /\ nodes = {}
         /\ left = {}
         /\ right = {}
         /\ root = NoValue
-        /\ traversal = <<>>
 
-EmptyTree == /\ (nodes = {})
+EmptyTree == /\ (TreeIsEmpty)
              /\ \E x \in 1..N:
                   /\ root' = x
                   /\ nodes' = (nodes \union {x})
-                  /\ traversal' = Traverse
              /\ UNCHANGED << left, right >>
 
-Insert == /\ (nodes /= {})
-          /\ \E x \in 1..N \ nodes:
-               \E parent \in nodes:
-                 /\ nodes' = (nodes \union {x})
-                 /\ \/ /\ left' = (left \union { <<x, parent>> })
-                       /\ right' = right
-                    \/ /\ right' = (right \union { <<x, parent>> })
-                       /\ left' = left
-                 /\ traversal' = Traverse
-          /\ root' = root
+InsertLeft == /\ (~TreeIsEmpty)
+              /\ \E x \in 1..N \ nodes:
+                   LET parent ==        CHOOSE parent \in nodes :
+                                 \lnot \E y \in nodes : <<y, parent>> \in left IN
+                     /\ nodes' = (nodes \union {x})
+                     /\ left' = (left \union { <<x, parent>> })
+              /\ UNCHANGED << right, root >>
 
-Next == EmptyTree \/ Insert
+InsertRight == /\ (~TreeIsEmpty)
+               /\ \E x \in 1..N \ nodes:
+                    LET parent ==        CHOOSE parent \in nodes :
+                                  \lnot \E y \in nodes : <<y, parent>> \in right IN
+                      /\ nodes' = (nodes \union {x})
+                      /\ right' = (right \union { <<x, parent>> })
+               /\ UNCHANGED << left, root >>
+
+Next == EmptyTree \/ InsertLeft \/ InsertRight
 
 Spec == Init /\ [][Next]_vars
 
