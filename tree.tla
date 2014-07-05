@@ -52,6 +52,7 @@ CONSTANT N, NoValue
                          IN Append(leftseq, node) \o rightseq
             IN IF TreeIsEmpty THEN <<>> ELSE TraverseRec(root)
 
+        IsSorted(seq) == \A i,j \in 1..Cardinality(nodes) : (i < j) => seq[i] < seq[j]
     }
 
     process (EmptyTree = 0) {
