@@ -83,6 +83,19 @@ CONSTANT N, NoValue
             }
         }
     }
+
+    process (InsertRight = 2) {
+        ir: while(TRUE) {
+            await (~TreeIsEmpty);
+            with (x \in 1..N \ nodes;
+                  parent = CHOOSE parent \in nodes :
+                    \lnot \E y \in nodes : <<y, parent>> \in right) {
+
+                    nodes := nodes \union {x};
+                    right := right \union { <<x, parent>> }
+            }
+        }
+    }
 }
  ***************************************************************************)
 \* BEGIN TRANSLATION
