@@ -76,12 +76,12 @@ CONSTANT N, NoValue
         il: while(TRUE) {
             await (nodes /= {});
             with (x \in 1..N \ nodes;
-                  parent \in nodes) {
-                if(\lnot \E y \in nodes : <<y, parent>> \in left){
+                  parent = CHOOSE parent \in nodes :
+                    \lnot \E y \in nodes : <<y, parent>> \in left) {
+
                     nodes := nodes \union {x};
                     left := left \union { <<x, parent>> };
                     traversal := Traverse
-                }
             }
         }
     }
