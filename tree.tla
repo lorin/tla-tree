@@ -40,8 +40,25 @@ CONSTANT N, NoValue
 
         HasACycle == \E x \in nodes : <<x, x>> \in TC(left \union right)
 
+        \* True if a relation is one-to-one
         OneToOne(rel) == \A x,y,z \in nodes :
             (<<x,z>> \in rel /\ <<y,z>> \in rel) => x=y
+
+        \* Invert a binary relation
+        Inv(rel) == { <<r[2], r[1]>> : r \in rel }
+
+        LeftDesc(lrel, rrel, node) ==
+            LET rel == (lrel \union rrel) \ {r \in rrel : r[2]=node}
+            IN { x \in nodes : <<node, x>> \in TC(Inv(rel)) }
+
+        RightDesc(lrel, rrel, node) ==
+            LET rel == (lrel \union rrel) \ {r \in lrel : r[2]=node}
+            IN { x \in nodes : <<node, x>> \in TC(Inv(rel)) }
+
+        HasBstProperty(nodeset,lrel,rrel) ==
+            \A n \in nodeset:
+                /\ \A x \in LeftDesc(lrel, rrel, n) : n>x
+                /\ \A x \in RightDesc(lrel, rrel, n) : n<x
 
         IsATree == TreeIsEmpty \/ (/\ AllNodesReachable
                                    /\ ~HasACycle
@@ -130,8 +147,25 @@ AllNodesReachable ==
 
 HasACycle == \E x \in nodes : <<x, x>> \in TC(left \union right)
 
+
 OneToOne(rel) == \A x,y,z \in nodes :
     (<<x,z>> \in rel /\ <<y,z>> \in rel) => x=y
+
+
+Inv(rel) == { <<r[2], r[1]>> : r \in rel }
+
+LeftDesc(lrel, rrel, node) ==
+    LET rel == (lrel \union rrel) \ {r \in rrel : r[2]=node}
+    IN { x \in nodes : <<node, x>> \in TC(Inv(rel)) }
+
+RightDesc(lrel, rrel, node) ==
+    LET rel == (lrel \union rrel) \ {r \in lrel : r[2]=node}
+    IN { x \in nodes : <<node, x>> \in TC(Inv(rel)) }
+
+HasBstProperty(nodeset,lrel,rrel) ==
+    \A n \in nodeset:
+        /\ \A x \in LeftDesc(lrel, rrel, n) : n>x
+        /\ \A x \in RightDesc(lrel, rrel, n) : n<x
 
 IsATree == TreeIsEmpty \/ (/\ AllNodesReachable
                            /\ ~HasACycle
