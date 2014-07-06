@@ -1,4 +1,4 @@
-tree.toolbox
-tree.cfg
-tree.pdf
-tree.old
+*.toolbox
+*.cfg
+*.pdf
+*.old
