@@ -1,9 +1,12 @@
 -------------------------------- MODULE util --------------------------------
 (* Some generic utility operators *)
 
+EXTENDS Integers, FiniteSets
+
+NodesOf(rel) == { r[1] : r \in rel } \union { r[2] : r \in rel }
 
 \* True if a relation is one-to-one
-OneToOne(rel) == \A x,y,z \in nodes :
+OneToOne(rel) == \A x,y,z \in NodesOf(rel) :
     (<<x,z>> \in rel /\ <<y,z>> \in rel) => x=y
 
 \* Invert a binary relation

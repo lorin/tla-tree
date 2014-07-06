@@ -1,6 +1,6 @@
-(* This is an exercise in using TLA+ to model binary search trees *)
 -------------------------------- MODULE tree --------------------------------
-EXTENDS Integers, FiniteSets, Sequences
+(* This is an exercise in using TLA+ to model binary search trees *)
+EXTENDS Sequences, util
 CONSTANT N, NoValue
 
 (***************************************************************************
@@ -13,18 +13,6 @@ CONSTANT N, NoValue
                   /\ \A x \in left : x \in nodes \X nodes
                   /\ \A x \in right : x \in nodes \X nodes
                   /\ (root = NoValue \/ root \in Nat)
-
-        (* Define transitive closure, from 9.6.2 of Lamport's Hyperbook.
-           We use Cardinality(R)+1 to catch cycles *)
-
-        R ** S == LET T == {rs \in R \X S : rs[1][2] = rs[2][1]}
-                  IN  {<<x[1][1], x[2][2]>> : x \in T}
-
-        TC(R) ==
-            LET RECURSIVE STC(_)
-                STC(n) == IF n=1 THEN R
-                                 ELSE STC(n-1) \union STC(n-1)**R
-            IN IF R={} THEN {} ELSE STC(Cardinality(R)+1)
 
 
         (* It's a tree if there's a root: a node that is reachable
@@ -39,13 +27,6 @@ CONSTANT N, NoValue
                 <<x, y>> \in TC(left \union right)
 
         HasACycle == \E x \in nodes : <<x, x>> \in TC(left \union right)
-
-        \* True if a relation is one-to-one
-        OneToOne(rel) == \A x,y,z \in nodes :
-            (<<x,z>> \in rel /\ <<y,z>> \in rel) => x=y
-
-        \* Invert a binary relation
-        Inv(rel) == { <<r[2], r[1]>> : r \in rel }
 
         LeftDesc(ns, lrel, rrel, node) ==
             LET rel == (lrel \union rrel) \ {r \in rrel : r[2]=node}
@@ -132,18 +113,6 @@ TypeOK == /\ \A x \in nodes : x \in Nat
 
 
 
-R ** S == LET T == {rs \in R \X S : rs[1][2] = rs[2][1]}
-          IN  {<<x[1][1], x[2][2]>> : x \in T}
-
-TC(R) ==
-    LET RECURSIVE STC(_)
-        STC(n) == IF n=1 THEN R
-                         ELSE STC(n-1) \union STC(n-1)**R
-    IN IF R={} THEN {} ELSE STC(Cardinality(R)+1)
-
-
-
-
 
 
 
@@ -154,13 +123,6 @@ AllNodesReachable ==
         <<x, y>> \in TC(left \union right)
 
 HasACycle == \E x \in nodes : <<x, x>> \in TC(left \union right)
-
-
-OneToOne(rel) == \A x,y,z \in nodes :
-    (<<x,z>> \in rel /\ <<y,z>> \in rel) => x=y
-
-
-Inv(rel) == { <<r[2], r[1]>> : r \in rel }
 
 LeftDesc(ns, lrel, rrel, node) ==
     LET rel == (lrel \union rrel) \ {r \in rrel : r[2]=node}
@@ -244,5 +206,5 @@ Spec == Init /\ [][Next]_vars
 
 =============================================================================
 \* Modification History
-\* Last modified Sat Jul 05 09:48:07 EDT 2014 by lorinhochstein
+\* Last modified Sat Jul 05 21:38:03 EDT 2014 by lorinhochstein
 \* Created Fri Jun 20 19:55:21 EDT 2014 by lorinhochstein
