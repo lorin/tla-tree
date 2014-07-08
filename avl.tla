@@ -1,6 +1,6 @@
 -------------------------------- MODULE avl --------------------------------
 (* This is an exercise in using TLA+ to model AVL trees *)
-EXTENDS Integers, FiniteSets, Sequences
+EXTENDS Sequences, tree
 CONSTANT N, NoValue
 
 
@@ -16,19 +16,6 @@ CONSTANT N, NoValue
                   /\ \A x \in right : x \in nodes \X nodes
                   /\ (root = NoValue \/ root \in Nat)
 
-        (* Define transitive closure, from 9.6.2 of Lamport's Hyperbook.
-           We use Cardinality(R)+1 to catch cycles *)
-
-        R ** S == LET T == {rs \in R \X S : rs[1][2] = rs[2][1]}
-                  IN  {<<x[1][1], x[2][2]>> : x \in T}
-
-        TC(R) ==
-            LET RECURSIVE STC(_)
-                STC(n) == IF n=1 THEN R
-                                 ELSE STC(n-1) \union STC(n-1)**R
-            IN IF R={} THEN {} ELSE STC(Cardinality(R)+1)
-
-
         (* It's a tree if there's a root: a node that is reachable
            from all other nodes. Also, need to verify there are
            no cycles, and that there is at most one left-child
@@ -42,56 +29,11 @@ CONSTANT N, NoValue
 
         HasACycle == \E x \in nodes : <<x, x>> \in TC(left \union right)
 
-        \* True if a relation is one-to-one
-        OneToOne(rel) == \A x,y,z \in nodes :
-            (<<x,z>> \in rel /\ <<y,z>> \in rel) => x=y
-
-        \* Invert a binary relation
-        Inv(rel) == { <<r[2], r[1]>> : r \in rel }
-
-        LeftDesc(ns, lrel, rrel, node) ==
-            LET rel == (lrel \union rrel) \ {r \in rrel : r[2]=node}
-            IN { x \in ns : <<node, x>> \in TC(Inv(rel)) }
-
-        RightDesc(ns, lrel, rrel, node) ==
-            LET rel == (lrel \union rrel) \ {r \in lrel : r[2]=node}
-            IN { x \in ns : <<node, x>> \in TC(Inv(rel)) }
-
-        HasBstProperty(nodeset,lrel,rrel) ==
-            \A n \in nodeset:
-                /\ \A x \in LeftDesc(nodeset, lrel, rrel, n) : n>x
-                /\ \A x \in RightDesc(nodeset, lrel, rrel, n) : n<x
-
         IsATree == TreeIsEmpty \/ (/\ AllNodesReachable
                                    /\ ~HasACycle
                                    /\ OneToOne(left)
                                    /\ OneToOne(right))
 
-
-        (* In-order traversal *)
-        Traverse ==
-            LET Child(parent, side) ==
-                    IF \E x \in nodes : <<x, parent>> \in side THEN
-                         CHOOSE x \in nodes : <<x, parent>> \in side
-                    ELSE NoValue
-                RECURSIVE TraverseRec(_)
-                TraverseRec(node) ==
-                    IF node=NoValue THEN <<>>
-                    ELSE LET leftseq == TraverseRec(Child(node, left))
-                             rightseq == TraverseRec(Child(node, right))
-                         IN Append(leftseq, node) \o rightseq
-            IN IF TreeIsEmpty THEN <<>> ELSE TraverseRec(root)
-
-        IsSorted(seq) == \A i,j \in 1..Len(seq) : (i < j) => seq[i] < seq[j]
-
-
-        IsBalanced(nodeset,lrel,rrel) ==
-            \A n \in nodeset:
-                LET ldesc == LeftDesc(nodeset, lrel, rrel,n)
-                    rdesc == RightDesc(nodeset, lrel, rrel,n)
-                    diff == Cardinality(ldesc) - Cardinality(rdesc)
-                    abs(x) == IF x<0 THEN -x ELSE x
-                IN abs(diff) \leq 1 
     }
 
     process (EmptyTree = 0) {
