@@ -64,6 +64,13 @@ TC(R) ==
       IN TraverseRec(Root(n, p), p)
 
     IsSorted(seq) == \A i,j \in 1..Len(seq) : (i < j) => seq[i] < seq[j]
+
+    IsBalanced(nodes, parent) ==
+      \A x \in nodes:
+        LET cleft  == Cardinality(SideDescendents(x, parent, Left))
+            cright == Cardinality(SideDescendents(x, parent, Right))
+            cdiff  == cleft-cright
+        IN cdiff \geq -1 /\ cdiff \leq 1
   }
 
   process(EmptyTree=0) {
@@ -135,6 +142,13 @@ Traverse ==
   IN TraverseRec(Root(n, p), p)
 
 IsSorted(seq) == \A i,j \in 1..Len(seq) : (i < j) => seq[i] < seq[j]
+
+IsBalanced(nodes, parent) ==
+  \A x \in nodes:
+    LET cleft  == Cardinality(SideDescendents(x, parent, Left))
+        cright == Cardinality(SideDescendents(x, parent, Right))
+        cdiff  == cleft-cright
+    IN cdiff \geq -1 /\ cdiff \leq 1
 
 
 vars == << n, p, pc >>
