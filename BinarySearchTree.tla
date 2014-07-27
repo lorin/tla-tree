@@ -74,8 +74,8 @@ TC(R) ==
     }
   }
   process(Insert=1) {
-    i: while(n /= 1..N) {
-      await(n /={});
+    i: while(PrintT(Traverse) /\ n /= 1..N) {
+      await(n /= {}) ;
       with(x \in 1..N \ n,
            y = CHOOSE y \in n \X {Left, Right} :
             IsBinarySearchTree(n \union {x}, p @@ x :> y)) {
@@ -159,8 +159,8 @@ e == /\ pc[0] = "e"
 EmptyTree == e
 
 i == /\ pc[1] = "i"
-     /\ IF n /= 1..N
-           THEN /\ (n /={})
+     /\ IF PrintT(Traverse) /\ n /= 1..N
+           THEN /\ (n /= {})
                 /\ \E x \in 1..N \ n:
                      LET y ==    CHOOSE y \in n \X {Left, Right} :
                               IsBinarySearchTree(n \union {x}, p @@ x :> y) IN
