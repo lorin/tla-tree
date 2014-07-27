@@ -1,5 +1,5 @@
 -------------------------- MODULE BinarySearchTree --------------------------
-EXTENDS Integers, FiniteSets, TLC
+EXTENDS Integers, FiniteSets, Sequences, TLC
 CONSTANT Left, Right, N, EmptyFunction
 
 (* Define transitive closure, from 9.6.2 of Lamport's Hyperbook. *)
@@ -33,9 +33,13 @@ TC(R) ==
           rel == { <<parent[x][1], x>> : x \in nodes }
       IN { x \in nodes : <<root, x>> \in TC(rel) }
 
+    (* Returns a set that contains the left or right child element of the
+       specified node, or an empty set if there's no corresponding child *)
+    Child(node, parent, side) ==
+      { x \in DOMAIN parent : parent[x] = <<node, side>> }
+
     SideDescendents(x, parent, side) ==
-      LET c == { y \in DOMAIN parent : parent[y] = <<x,side>> }
-      IN UNION { Descendents(root, parent) : root \in c}
+      UNION { Descendents(root, parent) : root \in Child(x, parent, side)}
 
     HasBstProperty(nodes, parent) == \A root \in nodes :
       ((\A x \in SideDescendents(root, parent, Left)  : root>x)  /\
@@ -43,6 +47,20 @@ TC(R) ==
 
     IsBinarySearchTree(nodes, parent) ==
       IsBinaryTree(nodes, parent) /\ HasBstProperty(nodes, parent)
+
+    (* Returns a set that contains the root, or empty set if no root *)
+    Root(nodes, parent) == nodes \ DOMAIN parent
+
+    (* In-order traversal *)
+    Traverse ==
+      LET RECURSIVE TraverseRec(_, _)
+          TraverseRec(nset, parent) ==
+           IF nset={} THEN <<>>
+           ELSE LET node==CHOOSE x \in nset : TRUE
+                    leftseq  == TraverseRec(Child(node, parent, Left), parent)
+                    rightseq == TraverseRec(Child(node, parent, Right), parent)
+                IN Append(leftseq, node) \o rightseq
+      IN TraverseRec(Root(n, p), p)
 
   }
 
@@ -84,9 +102,13 @@ Descendents(root, parent) ==
       rel == { <<parent[x][1], x>> : x \in nodes }
   IN { x \in nodes : <<root, x>> \in TC(rel) }
 
+
+
+Child(node, parent, side) ==
+  { x \in DOMAIN parent : parent[x] = <<node, side>> }
+
 SideDescendents(x, parent, side) ==
-  LET c == { y \in DOMAIN parent : parent[y] = <<x,side>> }
-  IN UNION { Descendents(root, parent) : root \in c}
+  UNION { Descendents(root, parent) : root \in Child(x, parent, side)}
 
 HasBstProperty(nodes, parent) == \A root \in nodes :
   ((\A x \in SideDescendents(root, parent, Left)  : root>x)  /\
@@ -94,6 +116,20 @@ HasBstProperty(nodes, parent) == \A root \in nodes :
 
 IsBinarySearchTree(nodes, parent) ==
   IsBinaryTree(nodes, parent) /\ HasBstProperty(nodes, parent)
+
+
+Root(nodes, parent) == nodes \ DOMAIN parent
+
+
+Traverse ==
+  LET RECURSIVE TraverseRec(_, _)
+      TraverseRec(nset, parent) ==
+       IF nset={} THEN <<>>
+       ELSE LET node==CHOOSE x \in nset : TRUE
+                leftseq  == TraverseRec(Child(node, parent, Left), parent)
+                rightseq == TraverseRec(Child(node, parent, Right), parent)
+            IN Append(leftseq, node) \o rightseq
+  IN TraverseRec(Root(n, p), p)
 
 
 vars == << n, p, pc >>
