@@ -34,7 +34,7 @@ TC(R) ==
 
     SideDescendents(x, parent, side) ==
       LET c == { y \in DOMAIN parent : parent[y] = <<x,side>> }
-      IN UNION { \A root \in c : Descendents(root, parent) }
+      IN UNION { Descendents(root, parent) : root \in c}
 
     HasBstProperty(nodes, parent) == \A root \in nodes :
       ((\A x \in SideDescendents(root, parent, Left)  : root>x)  /\
@@ -84,7 +84,7 @@ Descendents(root, parent) ==
 
 SideDescendents(x, parent, side) ==
   LET c == { y \in DOMAIN parent : parent[y] = <<x,side>> }
-  IN UNION { \A root \in c : Descendents(root, parent) }
+  IN UNION { Descendents(root, parent) : root \in c}
 
 HasBstProperty(nodes, parent) == \A root \in nodes :
   ((\A x \in SideDescendents(root, parent, Left)  : root>x)  /\
