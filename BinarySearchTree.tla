@@ -110,6 +110,7 @@ Child(node, parent, side) ==
   { x \in DOMAIN parent : parent[x] = <<node, side>> }
 
 SideDescendents(x, parent, side) ==
+  Child(x, parent, side) \union
   UNION { Descendents(root, parent) : root \in Child(x, parent, side)}
 
 HasBstProperty(nodes, parent) == \A root \in nodes :
@@ -132,6 +133,8 @@ Traverse ==
                 rightseq == TraverseRec(Child(node, parent, Right), parent)
             IN Append(leftseq, node) \o rightseq
   IN TraverseRec(Root(n, p), p)
+
+IsSorted(seq) == \A i,j \in 1..Len(seq) : (i < j) => seq[i] < seq[j]
 
 
 vars == << n, p, pc >>
@@ -157,7 +160,7 @@ EmptyTree == e
 
 i == /\ pc[1] = "i"
      /\ IF n /= 1..N
-           THEN /\ (n /={} /\ PrintT(Traverse))
+           THEN /\ (n /={})
                 /\ \E x \in 1..N \ n:
                      LET y ==    CHOOSE y \in n \X {Left, Right} :
                               IsBinarySearchTree(n \union {x}, p @@ x :> y) IN
