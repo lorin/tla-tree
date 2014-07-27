@@ -9,11 +9,12 @@ CONSTANT Left, Right, EmptyFunction, N
   define {
     IsBinaryTree(n,p) == \A x,y \in n : (p[x]=p[y]) => (x=y)
 
-    Children(x,p,side) == {}
+    SideDescendents(x,p,side) ==
+      UNION { \A y \in DOMAIN p : p[y] = <<x,side>> : Descendents(y)}
 
     HasBstProperty(n, p) == \A x \in n :
-      ((\A y \in Children(x, p, Left)  : x>y)  /\
-       (\A y \in Children(x, p, Right) : x<y))
+      ((\A y \in SideDescendents(x, p, Left)  : x>y)  /\
+       (\A y \in SideDescendents(x, p, Right) : x<y))
 
     IsBinarySearchTree(n, p) == IsBinaryTree(n, p) /\ HasBstProperty(n, p)
 
@@ -31,7 +32,7 @@ CONSTANT Left, Right, EmptyFunction, N
       await(nodes/={});
       with(x \in 1..N \ nodes,
            y = CHOOSE y \in nodes \X {Left, Right} :
-            IsBinarySearchTree(nodes, parent)) {
+            IsBinarySearchTree(nodes \union {x}, [parent EXCEPT ![x] = y])) {
         nodes := nodes \union {x};
         parent := [parent EXCEPT ![x] = y]
       }
