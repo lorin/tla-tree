@@ -4,40 +4,46 @@ CONSTANT Left, Right, EmptyFunction, N
 
 (***************************************************************************
 --algorithm GrowTree {
-  variables nodes={}, parent=EmptyFunction;
+  variables n={}, p=EmptyFunction;
 
   define {
-    IsBinaryTree(n,p) == \A x,y \in n : (p[x]=p[y]) => (x=y)
 
-    Descendents(x, p) == {}
+    TypeOK == /\ n \in 1..N
+              /\ p \in [1..N -> 1..N \X {Left, Right}]
 
-    SideDescendents(x,p,side) ==
-      LET c == \A y \in DOMAIN p : p[y] = <<x,side>>
-      IN UNION { \A root \in c : Descendents(root, p) }
+    IsBinaryTree(nodes, parent) ==
+      \A x,y \in nodes : (parent[x]=parent[y]) => (x=y)
 
-    HasBstProperty(n, p) == \A x \in n :
-      ((\A y \in SideDescendents(x, p, Left)  : x>y)  /\
-       (\A y \in SideDescendents(x, p, Right) : x<y))
+    Descendents(x, parent) == {}
 
-    IsBinarySearchTree(n, p) == IsBinaryTree(n, p) /\ HasBstProperty(n, p)
+    SideDescendents(x, parent, side) ==
+      LET c == { y \in DOMAIN parent : p[y] = <<x,side>> }
+      IN UNION { \A root \in c : Descendents(root, parent) }
+
+    HasBstProperty(nodes, parent) == \A x \in nodes :
+      ((\A y \in SideDescendents(x, parent, Left)  : x>y)  /\
+       (\A y \in SideDescendents(x, parent, Right) : x<y))
+
+    IsBinarySearchTree(nodes, parent) ==
+      IsBinaryTree(nodes, parent) /\ HasBstProperty(nodes, parent)
 
   }
 
   process(EmptyTree=0) {
-    e: while(nodes={}) {
+    e: while(n={}) {
       with(x \in 1..N) {
-        nodes := nodes \union {x}
+        n:= n \union {x}
       }
     }
   }
   process(Insert=1) {
-    i: while(nodes /= 1..N) {
-      await(nodes/={});
-      with(x \in 1..N \ nodes,
-           y = CHOOSE y \in nodes \X {Left, Right} :
-            IsBinarySearchTree(nodes \union {x}, [parent EXCEPT ![x] = y])) {
-        nodes := nodes \union {x};
-        parent := [parent EXCEPT ![x] = y]
+    i: while(n /= 1..N) {
+      await(n /={});
+      with(x \in 1..N \ n,
+           y = CHOOSE y \in n \X {Left, Right} :
+            IsBinarySearchTree(n \union {x}, [p EXCEPT ![x] = y])) {
+        n := n \union {x};
+        p := [p EXCEPT ![x] = y]
       }
     }
   }
@@ -45,56 +51,61 @@ CONSTANT Left, Right, EmptyFunction, N
 
  ***************************************************************************)
 \* BEGIN TRANSLATION
-VARIABLES nodes, parent, pc
+VARIABLES n, p, pc
 
 (* define statement *)
-IsBinaryTree(n,p) == \A x,y \in n : (p[x]=p[y]) => (x=y)
+TypeOK == /\ n \in 1..N
+          /\ p \in [1..N -> 1..N \X {Left, Right}]
 
-Descendents(x, p) == {}
+IsBinaryTree(nodes, parent) ==
+  \A x,y \in nodes : (parent[x]=parent[y]) => (x=y)
 
-SideDescendents(x,p,side) ==
-  LET c == \A y \in DOMAIN p : p[y] = <<x,side>>
-  IN UNION { \A root \in c : Descendents(root, p) }
+Descendents(x, parent) == {}
 
-HasBstProperty(n, p) == \A x \in n :
-  ((\A y \in SideDescendents(x, p, Left)  : x>y)  /\
-   (\A y \in SideDescendents(x, p, Right) : x<y))
+SideDescendents(x, parent, side) ==
+  LET c == { y \in DOMAIN parent : p[y] = <<x,side>> }
+  IN UNION { \A root \in c : Descendents(root, parent) }
 
-IsBinarySearchTree(n, p) == IsBinaryTree(n, p) /\ HasBstProperty(n, p)
+HasBstProperty(nodes, parent) == \A x \in nodes :
+  ((\A y \in SideDescendents(x, parent, Left)  : x>y)  /\
+   (\A y \in SideDescendents(x, parent, Right) : x<y))
+
+IsBinarySearchTree(nodes, parent) ==
+  IsBinaryTree(nodes, parent) /\ HasBstProperty(nodes, parent)
 
 
-vars == << nodes, parent, pc >>
+vars == << n, p, pc >>
 
 ProcSet == {0} \cup {1}
 
 Init == (* Global variables *)
-        /\ nodes = {}
-        /\ parent = EmptyFunction
+        /\ n = {}
+        /\ p = EmptyFunction
         /\ pc = [self \in ProcSet |-> CASE self = 0 -> "e"
                                         [] self = 1 -> "i"]
 
 e == /\ pc[0] = "e"
-     /\ IF nodes={}
+     /\ IF n={}
            THEN /\ \E x \in 1..N:
-                     nodes' = (nodes \union {x})
+                     n' = (n \union {x})
                 /\ pc' = [pc EXCEPT ![0] = "e"]
            ELSE /\ pc' = [pc EXCEPT ![0] = "Done"]
-                /\ nodes' = nodes
-     /\ UNCHANGED parent
+                /\ n' = n
+     /\ p' = p
 
 EmptyTree == e
 
 i == /\ pc[1] = "i"
-     /\ IF nodes /= 1..N
-           THEN /\ (nodes/={})
-                /\ \E x \in 1..N \ nodes:
-                     LET y ==    CHOOSE y \in nodes \X {Left, Right} :
-                              IsBinarySearchTree(nodes \union {x}, [parent EXCEPT ![x] = y]) IN
-                       /\ nodes' = (nodes \union {x})
-                       /\ parent' = [parent EXCEPT ![x] = y]
+     /\ IF n /= 1..N
+           THEN /\ (n /={})
+                /\ \E x \in 1..N \ n:
+                     LET y ==    CHOOSE y \in n \X {Left, Right} :
+                              IsBinarySearchTree(n \union {x}, [p EXCEPT ![x] = y]) IN
+                       /\ n' = (n \union {x})
+                       /\ p' = [p EXCEPT ![x] = y]
                 /\ pc' = [pc EXCEPT ![1] = "i"]
            ELSE /\ pc' = [pc EXCEPT ![1] = "Done"]
-                /\ UNCHANGED << nodes, parent >>
+                /\ UNCHANGED << n, p >>
 
 Insert == i
 
