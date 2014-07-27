@@ -33,7 +33,7 @@ TC(R) ==
       IN { x \in nodes : <<root, x>> \in TC(rel) }
 
     SideDescendents(x, parent, side) ==
-      LET c == { y \in DOMAIN parent : p[y] = <<x,side>> }
+      LET c == { y \in DOMAIN parent : parent[y] = <<x,side>> }
       IN UNION { \A root \in c : Descendents(root, parent) }
 
     HasBstProperty(nodes, parent) == \A root \in nodes :
@@ -74,8 +74,7 @@ TypeOK == /\ n \in SUBSET 1..N
           /\ p \in [1..N -> 1..N \X {Left, Right}] \union {EmptyFunction}
 
 IsBinaryTree(nodes, parent) ==
-  \A x,y \in nodes : (parent[x]=parent[y]) => (x=y)
-
+  \A x,y \in DOMAIN parent : (parent[x]=parent[y]) => (x=y)
 
 
 Descendents(root, parent) ==
@@ -84,7 +83,7 @@ Descendents(root, parent) ==
   IN { x \in nodes : <<root, x>> \in TC(rel) }
 
 SideDescendents(x, parent, side) ==
-  LET c == { y \in DOMAIN parent : p[y] = <<x,side>> }
+  LET c == { y \in DOMAIN parent : parent[y] = <<x,side>> }
   IN UNION { \A root \in c : Descendents(root, parent) }
 
 HasBstProperty(nodes, parent) == \A root \in nodes :
