@@ -67,12 +67,12 @@ TC(R) ==
   }
 
   process(EmptyTree=0) {
-    e: while(n={}) {
-      with(x \in 1..N) {
-        n:= n \union {x}
+    e: await(n={});
+       with(x \in 1..N) {
+         n:= n \union {x}
       }
-    }
   }
+
   process(Insert=1) {
     i: while(PrintT(Traverse) /\ n /= 1..N) {
       await(n /= {}) ;
@@ -148,12 +148,10 @@ Init == (* Global variables *)
                                         [] self = 1 -> "i"]
 
 e == /\ pc[0] = "e"
-     /\ IF n={}
-           THEN /\ \E x \in 1..N:
-                     n' = (n \union {x})
-                /\ pc' = [pc EXCEPT ![0] = "e"]
-           ELSE /\ pc' = [pc EXCEPT ![0] = "Done"]
-                /\ n' = n
+     /\ (n={})
+     /\ \E x \in 1..N:
+          n' = (n \union {x})
+     /\ pc' = [pc EXCEPT ![0] = "Done"]
      /\ p' = p
 
 EmptyTree == e
