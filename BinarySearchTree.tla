@@ -2,11 +2,22 @@
 EXTENDS Integers
 CONSTANT Left, Right, EmptyFunction, N
 
-
-
 (***************************************************************************
 --algorithm GrowTree {
   variables nodes={}, parent=EmptyFunction;
+
+  define {
+    IsBinaryTree(n,p) == \A x,y \in n : (p[x]=p[y]) => (x=y)
+
+    Children(x,p,side) == {}
+
+    HasBstProperty(n, p) == \A x \in n :
+      ((\A y \in Children(x, p, Left)  : x>y)  /\
+       (\A y \in Children(x, p, Right) : x<y))
+
+    IsBinarySearchTree(n, p) == IsBinaryTree(n, p) /\ HasBstProperty(n, p)
+
+  }
 
   process(EmptyTree=0) {
     e: while(nodes={}) {
@@ -31,6 +42,18 @@ CONSTANT Left, Right, EmptyFunction, N
  ***************************************************************************)
 \* BEGIN TRANSLATION
 VARIABLES nodes, parent, pc
+
+(* define statement *)
+IsBinaryTree(n,p) == \A x,y \in n : (p[x]=p[y]) => (x=y)
+
+Children(x,p,side) == {}
+
+HasBstProperty(n, p) == \A x \in n :
+  ((\A y \in Children(x, p, Left)  : x>y)  /\
+   (\A y \in Children(x, p, Right) : x<y))
+
+IsBinarySearchTree(n, p) == IsBinaryTree(n, p) /\ HasBstProperty(n, p)
+
 
 vars == << nodes, parent, pc >>
 
@@ -79,5 +102,5 @@ Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Jul 27 11:19:02 EDT 2014 by lorinhochstein
+\* Last modified Sun Jul 27 11:33:18 EDT 2014 by lorinhochstein
 \* Created Sun Jul 27 10:46:39 EDT 2014 by lorinhochstein
