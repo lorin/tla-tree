@@ -21,7 +21,8 @@ TC(R) ==
   define {
 
     TypeOK == /\ n \in SUBSET 1..N
-              /\ p \in [1..N -> 1..N \X {Left, Right}] \union {EmptyFunction}
+              /\ DOMAIN p \in SUBSET 1..N
+              /\ \A x \in DOMAIN p : p[x] \in (1..N) \X {Left, Right}
 
     IsBinaryTree(nodes, parent) ==
       \A x,y \in DOMAIN parent : (parent[x]=parent[y]) => (x=y)
@@ -71,7 +72,8 @@ VARIABLES n, p, pc
 
 (* define statement *)
 TypeOK == /\ n \in SUBSET 1..N
-          /\ p \in [1..N -> 1..N \X {Left, Right}] \union {EmptyFunction}
+          /\ DOMAIN p \in SUBSET 1..N
+          /\ \A x \in DOMAIN p : p[x] \in (1..N) \X {Left, Right}
 
 IsBinaryTree(nodes, parent) ==
   \A x,y \in DOMAIN parent : (parent[x]=parent[y]) => (x=y)
