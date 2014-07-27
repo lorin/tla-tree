@@ -1,6 +1,6 @@
 -------------------------- MODULE BinarySearchTree --------------------------
 EXTENDS Integers, FiniteSets, TLC
-CONSTANT Left, Right, EmptyFunction, N
+CONSTANT Left, Right, N, EmptyFunction
 
 (* Define transitive closure, from 9.6.2 of Lamport's Hyperbook.
    We use Cardinality(R)+1 to catch cycles *)
