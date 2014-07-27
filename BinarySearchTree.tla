@@ -1,5 +1,5 @@
 -------------------------- MODULE BinarySearchTree --------------------------
-EXTENDS Integers, FiniteSets
+EXTENDS Integers, FiniteSets, TLC
 CONSTANT Left, Right, EmptyFunction, N
 
 (* Define transitive closure, from 9.6.2 of Lamport's Hyperbook.
@@ -59,9 +59,9 @@ TC(R) ==
       await(n /={});
       with(x \in 1..N \ n,
            y = CHOOSE y \in n \X {Left, Right} :
-            IsBinarySearchTree(n \union {x}, [p EXCEPT ![x] = y])) {
+            IsBinarySearchTree(n \union {x}, p @@ x :> y)) {
         n := n \union {x};
-        p := [p EXCEPT ![x] = y]
+        p := p @@ x :> y
       }
     }
   }
@@ -123,9 +123,9 @@ i == /\ pc[1] = "i"
            THEN /\ (n /={})
                 /\ \E x \in 1..N \ n:
                      LET y ==    CHOOSE y \in n \X {Left, Right} :
-                              IsBinarySearchTree(n \union {x}, [p EXCEPT ![x] = y]) IN
+                              IsBinarySearchTree(n \union {x}, p @@ x :> y) IN
                        /\ n' = (n \union {x})
-                       /\ p' = [p EXCEPT ![x] = y]
+                       /\ p' = (p @@ x :> y)
                 /\ pc' = [pc EXCEPT ![1] = "i"]
            ELSE /\ pc' = [pc EXCEPT ![1] = "Done"]
                 /\ UNCHANGED << n, p >>
