@@ -2,8 +2,7 @@
 EXTENDS Integers, FiniteSets, TLC
 CONSTANT Left, Right, N, EmptyFunction
 
-(* Define transitive closure, from 9.6.2 of Lamport's Hyperbook.
-   We use Cardinality(R)+1 to catch cycles *)
+(* Define transitive closure, from 9.6.2 of Lamport's Hyperbook. *)
 
 \* First, we need composition
 R ** S == LET T == {rs \in R \X S : rs[1][2] = rs[2][1]}
@@ -13,7 +12,7 @@ TC(R) ==
     LET RECURSIVE STC(_)
         STC(n) == IF n=1 THEN R
                          ELSE STC(n-1) \union STC(n-1)**R
-    IN IF R={} THEN {} ELSE STC(Cardinality(R)+1)
+    IN IF R={} THEN {} ELSE STC(Cardinality(R))
 
 (***************************************************************************
 --algorithm GrowTree {
@@ -25,8 +24,7 @@ TC(R) ==
               /\ p \in [1..N -> 1..N \X {Left, Right}] \union {EmptyFunction}
 
     IsBinaryTree(nodes, parent) ==
-      \A x,y \in nodes : (parent[x]=parent[y]) => (x=y)
-
+      \A x,y \in DOMAIN parent : (parent[x]=parent[y]) => (x=y)
 
     \* Use transitive closure of the parent->child relation
     Descendents(root, parent) ==
