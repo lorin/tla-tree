@@ -20,8 +20,8 @@ TC(R) ==
 
   define {
 
-    TypeOK == /\ n \in SUBSET 1..N
-              /\ DOMAIN p \in SUBSET 1..N
+    TypeOK == /\ n \in SUBSET (1..N)
+              /\ DOMAIN p \in SUBSET (1..N)
               /\ \A x \in DOMAIN p : p[x] \in (1..N) \X {Left, Right}
 
     IsBinaryTree(nodes, parent) ==
@@ -71,8 +71,8 @@ TC(R) ==
 VARIABLES n, p, pc
 
 (* define statement *)
-TypeOK == /\ n \in SUBSET 1..N
-          /\ DOMAIN p \in SUBSET 1..N
+TypeOK == /\ n \in SUBSET (1..N)
+          /\ DOMAIN p \in SUBSET (1..N)
           /\ \A x \in DOMAIN p : p[x] \in (1..N) \X {Left, Right}
 
 IsBinaryTree(nodes, parent) ==
