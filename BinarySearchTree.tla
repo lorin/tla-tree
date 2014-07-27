@@ -29,7 +29,7 @@ TC(R) ==
     \* Use transitive closure of the parent->child relation
     Descendents(root, parent) ==
       LET nodes == DOMAIN parent
-          rel == { x \in nodes : <<parent[x][1], x>>}
+          rel == { <<parent[x][1], x>> : x \in nodes }
       IN { x \in nodes : <<root, x>> \in TC(rel) }
 
     SideDescendents(x, parent, side) ==
@@ -79,7 +79,7 @@ IsBinaryTree(nodes, parent) ==
 
 Descendents(root, parent) ==
   LET nodes == DOMAIN parent
-      rel == { x \in nodes : <<parent[x][1], x>>}
+      rel == { <<parent[x][1], x>> : x \in nodes }
   IN { x \in nodes : <<root, x>> \in TC(rel) }
 
 SideDescendents(x, parent, side) ==
