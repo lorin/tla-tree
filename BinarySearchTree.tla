@@ -9,8 +9,11 @@ CONSTANT Left, Right, EmptyFunction, N
   define {
     IsBinaryTree(n,p) == \A x,y \in n : (p[x]=p[y]) => (x=y)
 
+    Descendents(x, p) == {}
+
     SideDescendents(x,p,side) ==
-      UNION { \A y \in DOMAIN p : p[y] = <<x,side>> : Descendents(y)}
+      LET c == \A y \in DOMAIN p : p[y] = <<x,side>>
+      IN UNION { \A root \in c : Descendents(root, p) }
 
     HasBstProperty(n, p) == \A x \in n :
       ((\A y \in SideDescendents(x, p, Left)  : x>y)  /\
@@ -47,11 +50,15 @@ VARIABLES nodes, parent, pc
 (* define statement *)
 IsBinaryTree(n,p) == \A x,y \in n : (p[x]=p[y]) => (x=y)
 
-Children(x,p,side) == {}
+Descendents(x, p) == {}
+
+SideDescendents(x,p,side) ==
+  LET c == \A y \in DOMAIN p : p[y] = <<x,side>>
+  IN UNION { \A root \in c : Descendents(root, p) }
 
 HasBstProperty(n, p) == \A x \in n :
-  ((\A y \in Children(x, p, Left)  : x>y)  /\
-   (\A y \in Children(x, p, Right) : x<y))
+  ((\A y \in SideDescendents(x, p, Left)  : x>y)  /\
+   (\A y \in SideDescendents(x, p, Right) : x<y))
 
 IsBinarySearchTree(n, p) == IsBinaryTree(n, p) /\ HasBstProperty(n, p)
 
@@ -82,7 +89,7 @@ i == /\ pc[1] = "i"
            THEN /\ (nodes/={})
                 /\ \E x \in 1..N \ nodes:
                      LET y ==    CHOOSE y \in nodes \X {Left, Right} :
-                              IsBinarySearchTree(nodes, parent) IN
+                              IsBinarySearchTree(nodes \union {x}, [parent EXCEPT ![x] = y]) IN
                        /\ nodes' = (nodes \union {x})
                        /\ parent' = [parent EXCEPT ![x] = y]
                 /\ pc' = [pc EXCEPT ![1] = "i"]
@@ -103,5 +110,5 @@ Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Jul 27 11:33:18 EDT 2014 by lorinhochstein
+\* Last modified Sun Jul 27 11:56:02 EDT 2014 by lorinhochstein
 \* Created Sun Jul 27 10:46:39 EDT 2014 by lorinhochstein
