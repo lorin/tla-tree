@@ -39,6 +39,7 @@ TC(R) ==
       { x \in DOMAIN parent : parent[x] = <<node, side>> }
 
     SideDescendents(x, parent, side) ==
+      Child(x, parent, side) \union
       UNION { Descendents(root, parent) : root \in Child(x, parent, side)}
 
     HasBstProperty(nodes, parent) == \A root \in nodes :
@@ -62,6 +63,7 @@ TC(R) ==
                 IN Append(leftseq, node) \o rightseq
       IN TraverseRec(Root(n, p), p)
 
+    IsSorted(seq) == \A i,j \in 1..Len(seq) : (i < j) => seq[i] < seq[j]
   }
 
   process(EmptyTree=0) {
@@ -155,7 +157,7 @@ EmptyTree == e
 
 i == /\ pc[1] = "i"
      /\ IF n /= 1..N
-           THEN /\ (n /={})
+           THEN /\ (n /={} /\ PrintT(Traverse))
                 /\ \E x \in 1..N \ n:
                      LET y ==    CHOOSE y \in n \X {Left, Right} :
                               IsBinarySearchTree(n \union {x}, p @@ x :> y) IN
@@ -179,5 +181,5 @@ Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Jul 27 11:56:02 EDT 2014 by lorinhochstein
+\* Last modified Sun Jul 27 14:11:12 EDT 2014 by lorinhochstein
 \* Created Sun Jul 27 10:46:39 EDT 2014 by lorinhochstein
