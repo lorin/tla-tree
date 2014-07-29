@@ -101,7 +101,7 @@ TC(R) ==
     UnbalancedNode(nodes, parent) ==
       CHOOSE x \in nodes :
         /\ ~NodeIsBalanced(x, parent)
-        /\ \y \in Descendents(x, parent) : NodeIsBalanced(y, parent)
+        /\ \A y \in Descendents(x, parent) : NodeIsBalanced(y, parent)
 
   }
 
@@ -133,20 +133,18 @@ TC(R) ==
 
   process(SingleRotateWithLeft=2) {
     srwl: while(TRUE) {
-      await(
-       /\ ~TreeIsBalanced(n, p)
-       /\ \E x \in n :
-        (/\ BalanceFactor(x, p)<1
-         /\ \A y \in Child(x, p, Left) : NodeIsBalanced(y, p)
-         /\ \A y \in Child(x, p, Right) : NodeIsBalanced(y, p)));
-      with(x = CHOOSE x \in n :
-            (/\ BalanceFactor(x, p)<1
-             /\ \A y \in Child(x, p, Left) : NodeIsBalanced(y, p)
-             /\ \A y \in Child(x, p, Right) : NodeIsBalanced(y, p)),
-           cx = CHOOSE y \in Child(x, p, Left) : TRUE,
-           px = p[x][1]) {
-        p := [p EXCEPT ![x]=<<cx,Right>>]
-        \* p := [p EXCEPT ![x]=<<cx,Right>>,![cx]=p[x]]
+      await(/\ ~TreeIsBalanced(n, p)
+            /\ LET node==UnbalancedNode(n, p) IN
+               (/\ BalanceFactor(node, p)>0
+                /\ (\E x in Child(node, p, Left) : BalanceFactor(x, p)>0)));
+      with(k2 = UnbalancedNode(n,p),
+           k1 = CHOOSE x \in Child(k2, parent, Left): TRUE) {
+        p := IF Child(k1, parent, Right)={}
+             THEN [p EXCEPT ![k1]=p[k2], ![k2]=<<k1,Right>>]
+             ELSE LET y==CHOOSE y \in Child(k1, parent, Right) : TRUE
+                  IN [p EXCEPT ![k1]=p[k2],
+                               ![k2]=<<k1,Right>>,
+                               ![y]==<<k2,Left>>]
       }
     }
   }
