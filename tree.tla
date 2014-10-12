@@ -44,9 +44,14 @@ Init == /\ nodes={}
         /\ parent= << >>
 Insert(v) == /\ v \notin nodes
              /\ nodes' = nodes \union {v}
+             /\ parent' = [x \in DOMAIN parent |-> IF x=v THEN IF nodes={} THEN NoVal ELSE CHOOSE p:p \in nodes  
+                                                   ELSE parent[x]] 
+(*
              /\ parent' = [parent EXCEPT ![v] = 
                             IF nodes={} THEN NoVal
                                         ELSE CHOOSE p:p \in nodes]
+*)
+
 Next == \E v \in Val : Insert(v)
 Spec == Init /\ [][Next]_<<nodes,parent>>
 -----------------------------------------------------------------------------
@@ -54,5 +59,5 @@ THEOREM Spec => [](TypeInvariant /\ NoCycles /\ SingleRoot)
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Oct 12 19:23:56 EDT 2014 by lorinhochstein
+\* Last modified Sun Oct 12 19:39:09 EDT 2014 by lorinhochstein
 \* Created Sun Oct 12 19:00:22 EDT 2014 by lorinhochstein
